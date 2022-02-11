@@ -1,5 +1,10 @@
 # CeloWork
-## A decentralized approach to freelanced work.
+### A decentralized approach to freelanced work.
+
+1. Create a job listing for any contracted work you need completed, the bounty for the job listing must be paid upfront.
+2. Submit proposals for job listings you are looking to complete.
+3. Proposals must then be activated by the owner of the job listing. (one active proposal per job listing)
+4. Once work is done on the job, the owner of the job listing will then release the bounty to the proposal owner.
 
 # Install
 
