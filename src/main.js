@@ -11,12 +11,16 @@ const cUSDContractAddress = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1"
 let contract
 let kit
 
+//array to hold all of the job listings stored within the contract
 let jobListings = []
+//array to hold all of the non paid indexes of job listings owned by the currently connected celo wallet
 let activeOwnedJobListings = []
+//array to hold all of the indexes of job listings with non paid proposals by the currently connected celo wallet
 let activeOwnedProposals = []
 
 let cUSDBalance
 
+//connect the celo wallet
 const connectCeloWallet = async function () {
     if (window.celo) {
         notification("Please approve this DApp to use it.")
@@ -39,11 +43,13 @@ const connectCeloWallet = async function () {
     }
 }
 
+//load the cUSD balance of the currently connected wallet
 const getBalance = async function () {
     const totalBalance = await kit.getTotalBalance(kit.defaultAccount)
     cUSDBalance = totalBalance.cUSD.shiftedBy(-ERC20_DECIMALS).toFixed(2)
 }
 
+//contact the contract to pull in all of the job listings stored within the contract
 const getJobListings = async function () {
     jobListings = []
     activeOwnedJobListings = []
@@ -52,6 +58,7 @@ const getJobListings = async function () {
     const _jobListingsLength = await contract.methods.getJobListingsLength().call()
     const _jobListings = []
 
+    //fill the job listings array from the contract
     for (let i = 0; i < _jobListingsLength; i++) {
         let _jobListing = new Promise(async (resolve, reject) => {
             let jl = await contract.methods.readJobListing(i).call()
@@ -75,6 +82,7 @@ const getJobListings = async function () {
     }
     jobListings = await Promise.all(_jobListings)
 
+    //pull in all of the proposals for all of the job listings
     for (let i = 0; i < jobListings.length; i++) {
         let _proposals = []
         const _proposalsLength = await contract.methods.getProposalsLength(i).call()
@@ -95,17 +103,16 @@ const getJobListings = async function () {
         }
         jobListings[i].proposals = await Promise.all(_proposals)
     }
-
-    console.log(jobListings)
-    console.log(activeOwnedJobListings)
-    console.log(activeOwnedProposals)
 }
 
+//top right of the navbar
+//this shows an icon for the connected wallet and the current cUSD balance
 function updateNavbar () {
     document.getElementById("navbar-right").style.display = "flex"
     document.getElementById("navbar-right").innerHTML = profileTemplate()
 }
 
+//use the blockies library to generate an icon for the currently connected wallet
 function profileTemplate () {
     const icon = blockies
         .create({
@@ -122,6 +129,7 @@ function profileTemplate () {
     `
 }
 
+//populate the web page with the data currently stored in this script
 function updateContent () {
     //clear the current divs holding information from the contract
     document.getElementById("jobListingsContainer").innerHTML = ""
@@ -134,8 +142,11 @@ function updateContent () {
     displayActiveProposals()
 }
 
+//display the job listings in the main section of the web page
+//change the button's functionality depending on the status of the job listing
 function displayJobListings () {
     for (let i = 0; i < jobListings.length; i++) {
+        //display the job listings that are currently accepting proposals
         if (jobListings[i].jobListingStatus == 0) {
             const newDiv = document.createElement("div")
             newDiv.className = "rounded-3 p-4 shadow-sm my-5"
@@ -144,6 +155,7 @@ function displayJobListings () {
             const button = document.createElement("button")
             button.setAttribute("type", "button")
 
+            //allow the user to view proposals if the user owns the job listing
             if (activeOwnedJobListings.includes(i)) {
                 button.setAttribute("class", "btn btn-primary flex-shrink-0")
                 button.setAttribute("data-bs-toggle", "modal")
@@ -154,9 +166,13 @@ function displayJobListings () {
                 button.addEventListener("click", () => {
                     updateViewProposalsModal(button.dataset.index)
                 })
+            
+            //show the user if they've submitted a proposal for this job listing
             } else if (activeOwnedProposals.includes(i)) {
                 button.setAttribute("class", "btn btn-secondary flex-shrink-0 disabled")
                 button.innerText = "Proposal Submitted"
+
+            //allow users to submit new proposals to job listings
             } else {
                 button.setAttribute("class", "btn btn-primary flex-shrink-0")
                 button.setAttribute("data-bs-toggle", "modal")
@@ -177,6 +193,7 @@ function displayJobListings () {
     }
 }
 
+//an html template for the display of job listings
 function jobListingTemplate (_index) {
     return `
         <div class="d-flex flex-column flex-md-row">
@@ -195,11 +212,16 @@ function jobListingTemplate (_index) {
     `
 }
 
+//control the display of active owned job listings in the offscreen menu
+//this is the display of non-paid job listings owned by the currently connected wallet
 function displayActiveJobListings () {
+    //display that there are no active job listings currently
     if (activeOwnedJobListings.length == 0) {
         const newP = document.createElement("p")
         newP.innerHTML = "No active job listings"
         document.getElementById("activeJobListings").append(newP)
+
+    //populate the offscreen menu with non-paid job listings owned by the currently connected wallet
     } else {
         for (let i = 0; i < activeOwnedJobListings.length; i++) {
                 const newDiv = document.createElement("div")
@@ -210,6 +232,7 @@ function displayActiveJobListings () {
                 button.setAttribute("type", "button")
                 button.className = "btn btn-primary"
     
+                //allow the user to view currently available proposals for the given listing
                 if (jobListings[activeOwnedJobListings[i]].jobListingStatus == 0) {
                     button.setAttribute("data-bs-toggle", "modal")
                     button.setAttribute("data-bs-target", "#viewProposalsModal")
@@ -219,6 +242,8 @@ function displayActiveJobListings () {
                     button.addEventListener("click", () => {
                         updateViewProposalsModal(button.dataset.index)
                     })
+
+                //if a proposal is currently active for the listing, allow the user to pay the bounty for completion of the job
                 } else {
                     button.setAttribute("data-index", activeOwnedJobListings[i])
                     button.innerText = "Pay Bounty"
@@ -239,6 +264,7 @@ function displayActiveJobListings () {
     }
 }
 
+//an html template for active job listings
 function activeJobListingTemplate (_jobListing) {
     return `
         <div class="container-fluid">
@@ -247,11 +273,14 @@ function activeJobListingTemplate (_jobListing) {
     `
 }
 
+//display the non-paid proposals owned by the currently connected wallet
 function displayActiveProposals () {
+    //display there are no owned active proposals
     if (activeOwnedProposals.length == 0) {
         const newP = document.createElement("p")
         newP.innerHTML = "No active proposals"
         document.getElementById("activeProposals").append(newP)
+    //display the currently active owned proposals
     } else {
         for (let i = 0; i < activeOwnedProposals.length; i++) {
             const newDiv = document.createElement("div")
@@ -265,6 +294,7 @@ function displayActiveProposals () {
     }
 }
 
+//an html template for the active proposals displayed in the offscreen menu
 function activeProposalTemplate (_index) {
     if (jobListings[_index].jobListingStatus == 0) {
         return `
@@ -284,20 +314,25 @@ function activeProposalTemplate (_index) {
     }
 }
 
+//update the data displayed in the proposal view modal
 function updateViewProposalsModal (_index) {
     document.getElementById("jobListingProposalView").innerHTML = ""
     displayViewProposalsModal(_index)
 }
 
+//controls the population of data within the proposal view modal
 function displayViewProposalsModal (_index) {
+    //display that there are no proposals currently submitted
     if (jobListings[_index].proposals.length == 0) {
         document.getElementById("jobListingProposalView").innerText = "No proposals submitted"
     }
 
+    //iterate through a given job listing's proposals displaying their data
     for (let i = 0; i < jobListings[_index].proposals.length; i++) {
         const newDiv = document.createElement("div")
         newDiv.innerHTML = viewProposalModalTemplate(_index, i)
 
+        //allow users to activate a proposal for a job listing
         const button = document.createElement("button")
         button.setAttribute("type", "button")
         button.setAttribute("class", "btn btn-primary")
@@ -317,6 +352,7 @@ function displayViewProposalsModal (_index) {
     }
 }
 
+//an html template for display proposals in the proposal view modal
 function viewProposalModalTemplate (_jobListingsIndex, _proposalIndex) {
     return `
         <h6>${ jobListings[_jobListingsIndex].proposals[_proposalIndex].email }</h6>
@@ -324,15 +360,18 @@ function viewProposalModalTemplate (_jobListingsIndex, _proposalIndex) {
     `
 }
 
+//handle the display of notifications to the user
 function notification (_text) {
     document.getElementById("notification").style.display = "block"
     document.getElementById("notification").textContent = _text
 }
 
+//turn off the display of notifications
 function notificationOff () {
     document.getElementById("notification").style.display = "none"
 }
 
+//approve a given amount to be sent through the celo extension wallet
 async function approve (_amount) {
     const cUSDContract = new kit.web3.eth.Contract(erc20Abi, cUSDContractAddress)
 
@@ -342,6 +381,7 @@ async function approve (_amount) {
     return result
 }
 
+//reload all of the displayed dynamic content on the page
 async function loadContent () {
     await connectCeloWallet()
     await getBalance()
@@ -349,14 +389,17 @@ async function loadContent () {
     updateContent()
 }
 
+//when the celo wallet detects a change in connected account, reload the dynamic content on the page
 window.celo.on("accountsChanged", async () => {
     loadContent()
 })
 
+//when the window loads, load the dynamic content on the page
 window.addEventListener("load", async () => {
     loadContent()
 })
 
+//an event handler to control adding new job listings to the contract
 document.querySelector("#newJobListingButton").addEventListener("click", async () => {
 
     const amount = new BigNumber(document.getElementById("newListingBounty").value)
@@ -380,6 +423,7 @@ document.querySelector("#newJobListingButton").addEventListener("click", async (
 
     notification(`Awaiting payment for bounty...`)
 
+    //contact the contract to write a job listing entry and pay for its bounty upfront
     try {
         await contract.methods.writeJobListing(...params).send({ from: kit.defaultAccount })
         notification(`You successfully added "${ document.getElementById("newListingName").value }".`)
@@ -397,6 +441,7 @@ document.querySelector("#newJobListingButton").addEventListener("click", async (
     }
 })
 
+//an event handler to control adding new proposals to the contract
 document.querySelector("#newProposalButton").addEventListener("click", async () => {
     const jobListingIndex = document.getElementById("newProposalJobListingIndex").value
 
@@ -408,6 +453,7 @@ document.querySelector("#newProposalButton").addEventListener("click", async () 
 
     notification(`Submitting proposal for "${jobListings[jobListingIndex].name}"...`)
 
+    //pass in the necessary parameters to write a proposal for a given job listing
     try {
         const result = await contract.methods.writeProposal(...params).send({ from: kit.defaultAccount })
 
@@ -423,6 +469,7 @@ document.querySelector("#newProposalButton").addEventListener("click", async () 
     }
 })
 
+//choose a proposal to activate as the active proposal for a given job listing
 async function activateProposal (_jobListingIndex, _proposalIndex) {
     const params = [
         _jobListingIndex,
@@ -441,6 +488,7 @@ async function activateProposal (_jobListingIndex, _proposalIndex) {
     }
 }
 
+//once the job is completed, allow the user to release payment for the proposal owner
 async function payProposal (_index) {
     notification("Paying bounty...")
 
