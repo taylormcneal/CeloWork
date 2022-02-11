@@ -1,5 +1,5 @@
-##CeloWork
-###A decentralized approach to freelanced work.
+## CeloWork
+### A decentralized approach to freelanced work.
 
 # Install
 
