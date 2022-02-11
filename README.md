@@ -7,7 +7,7 @@
 4. Once work is done on the job, the owner of the job listing will then release the bounty to the proposal owner.
 
 ### Live Demo
-[git@github.com:taylormcneal/CeloWork.git](git@github.com:taylormcneal/CeloWork.git)
+[https://taylormcneal.github.io/CeloWork/](https://taylormcneal.github.io/CeloWork/)
 
 # Install
 
