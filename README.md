@@ -6,6 +6,9 @@
 3. Proposals must then be activated by the owner of the job listing. (one active proposal per job listing)
 4. Once work is done on the job, the owner of the job listing will then release the bounty to the proposal owner.
 
+### Live Demo
+[git@github.com:taylormcneal/CeloWork.git](git@github.com:taylormcneal/CeloWork.git)
+
 # Install
 
 ```
