@@ -5,7 +5,7 @@ import celoworkAbi from "../contract/celowork.abi.json"
 import erc20Abi from "../contract/erc20.abi.json"
 
 const ERC20_DECIMALS = 18
-const MyContractAddress = "0xe6d475e42393d3849EAeFcfD6C56178A1Be3aF00"
+const MyContractAddress = "0x76ae6f80dbE5315395fBe6f79F7637572993030F"
 const cUSDContractAddress = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1"
 
 let contract
@@ -83,6 +83,10 @@ const getJobListings = async function () {
     jobListings = await Promise.all(_jobListings)
 
     //pull in all of the proposals for all of the job listings
+
+    
+
+
     for (let i = 0; i < jobListings.length; i++) {
         let _proposals = []
         const _proposalsLength = await contract.methods.getProposalsLength(i).call()
