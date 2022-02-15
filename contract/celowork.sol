@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+pragma solidity >=0.7.0 <0.9.0;
 
 interface IERC20Token {
 	function transfer(address, uint256) external returns (bool);
@@ -12,10 +13,7 @@ interface IERC20Token {
     event Approval(address indexed owner, address indexed spender, uint256 value);
 }
 
-pragma solidity >=0.7.0 <0.9.0;
-
 contract CeloWork {
-
     address payable contractOwner;
     address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
@@ -172,6 +170,11 @@ contract CeloWork {
         //given a job listing index, return the length of the corresponding proposal mapping
     function getProposalsLength (uint _jobListingIndex) public view returns (uint) {
         return (jobListings[_jobListingIndex].proposalsLength);
+    }
+
+    //delete proposal
+    function withdrawProposal (uint _joListingIndex, uint _proposalIndex) public {
+        delete jobListings[_joListingIndex].proposals[_proposalIndex];
     }
 
 }
