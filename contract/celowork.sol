@@ -20,7 +20,7 @@ contract CeloWork {
     address internal cUsdTokenAddress = 0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1;
 
     //proposal struct
-        //proposals represent a prospective worker for a given job listing
+    //proposals represent a prospective worker for a given job listing
     struct Proposal {
         address payable owner;
         string email;
