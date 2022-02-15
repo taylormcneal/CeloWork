@@ -1,12 +1,9 @@
 import Web3 from 'web3'
-import { newKit, newKitFromWeb3 } from '@celo/contractkit'
+import { newKitFromWeb3 } from '@celo/contractkit'
 import BigNumber from "bignumber.js"
 import celoworkAbi from "../contract/celowork.abi.json"
 import erc20Abi from "../contract/erc20.abi.json"
-
-const ERC20_DECIMALS = 18
-const MyContractAddress = "0xe6d475e42393d3849EAeFcfD6C56178A1Be3aF00"
-const cUSDContractAddress = "0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1"
+import { ERC20_DECIMALS, MyContractAddress, cUSDContractAddress } from "./utils/constants.js"
 
 let contract
 let kit
@@ -41,6 +38,16 @@ const connectCeloWallet = async function () {
     } else {
         notification("Please install the CeloExtensionWallet.")
     }
+}
+
+//approve a given amount to be sent through the celo extension wallet
+async function approve (_amount) {
+    const cUSDContract = new kit.web3.eth.Contract(erc20Abi, cUSDContractAddress)
+
+    const result = await cUSDContract.methods
+        .approve(MyContractAddress, _amount)
+        .send({ from: kit.defaultAccount })
+    return result
 }
 
 //load the cUSD balance of the currently connected wallet
@@ -369,16 +376,6 @@ function notification (_text) {
 //turn off the display of notifications
 function notificationOff () {
     document.getElementById("notification").style.display = "none"
-}
-
-//approve a given amount to be sent through the celo extension wallet
-async function approve (_amount) {
-    const cUSDContract = new kit.web3.eth.Contract(erc20Abi, cUSDContractAddress)
-
-    const result = await cUSDContract.methods
-        .approve(MyContractAddress, _amount)
-        .send({ from: kit.defaultAccount })
-    return result
 }
 
 //reload all of the displayed dynamic content on the page
